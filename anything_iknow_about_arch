@@ -1,0 +1,28 @@
+pacman - package's arch linux
+yay - package's user provide for arch linux
+
+ - update package
+sudo pacman -Syyu
+sudo yay -Syu
+
+- install package
+sudo pacman -S packagename
+- information about package
+pacman -Qi packagename
+
+yay -S packagename
+
+- remove package 
+sudo pacman -R packagename
+yay -Rns packagename
+
+ctrl+shift+m -> tab bar konsole
+
+reboot slowly -> solution:
+    cd /etc/systemd
+    sudo cp system.conf system.conf.bk
+    sudo vim system.conf
+    47gg -> search DefaultTimeoutStopSpec=90s
+    edit to about 5s
+    :wq
+-> done

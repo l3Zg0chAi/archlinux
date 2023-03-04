@@ -1,0 +1,90 @@
+docker run: create và run 1 new container từ 1 image docker
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+
+docker ps -a: xem danh sách tất cả các container
+
+kiểm tra xem port có đang dùng rồi ko: sudo lsof -i :<port>
+mở cổng port : sudo ufw allow <port>
+remove docker container: docker rm  -f --force abcdefg
+remove docker image: docker rmi -f --force myimage
+
+tạo container :
+docker run --name my-honeygain-container1 honeygain/honeygain -tou-accept
+docker run --name my-honeygain-container2 honeygain/honeygain -tou-accept
+docker run --name my-honeygain-container3 honeygain/honeygain -tou-accept
+
+docker run --name my-honeygain-container1 --device=/dev/sda2:/dev/sda2:rw --network my-network --ip 172.18.0.0 -itd honeygain/honeygain -tou-accept -email hai.lengocbk@gmail.com -pass DuyenTrieuCouple -device /dev/sda2
+
+-> lỗi: docker: Error response from daemon: user specified IP address is supported only when connecting to networks with user configured subnets.
+là set đc IP cho container trên mạng docker được cấu hình sẵn rồi
+-> phải tạo mạng docker với dải ip tùy chỉnh: docker network create --subnet=<subnet> <network-name>
+
+thông số mạng ảo: docker network inspect my-network
+-itd: tương tác + detahc mode
+-it
+muốn chạy ngay cả khi  thoát terminal: --rm -it
+
+docker start my-container sẽ khởi động lại container nếu nó đã exit
+docker attach my-container để kết nối đến sau khi đã start, sẽ kết nối trực tiếp tới terminal của container đó, và nếu thoát, contianer đó sẽ dùng
+
+chạy 1 terminal vào container : docker exec -it my-honeygain-container2 /bin/bash
+
+* network setting
+--dns=[]: tùy chọn này cho phép người dùng chỉ định các máy chủ DNS tùy chỉnh cho container. Docker sẽ cố gắng sử dụng các máy chủ DNS này để giải quyết tên miền khi container chạy.
+
+--network=<network-name>: tùy chọn này cho phép người dùng kết nối container đến một network nhất định. Các network có thể được định nghĩa bởi Docker hoặc do người dùng tự tạo.
+
+--network-alias=[]: tùy chọn này cho phép người dùng định nghĩa các alias cho container trong network. Khi container chạy, các alias này sẽ được sử dụng để giải quyết tên miền thành địa chỉ IP.
+
+--add-host="": tùy chọn này cho phép người dùng thêm một dòng vào file /etc/hosts của container. Điều này có thể hữu ích khi cần thiết để giải quyết tên miền thành địa chỉ IP cụ thể trong container.
+
+--mac-address="": tùy chọn này cho phép người dùng đặt địa chỉ MAC tùy chỉnh cho adapter Ethernet của container. Điều này có thể hữu ích khi cần thiết để đảm bảo rằng các adapter Ethernet của các container khác nhau không có địa chỉ MAC trùng lặp.
+
+--ip="": tùy chọn này cho phép người dùng đặt địa chỉ IPv4 tùy chỉnh cho adapter Ethernet của container.
+
+--ip6="": tùy chọn này cho phép người dùng đặt địa chỉ IPv6 tùy chỉnh cho adapter Ethernet của container.
+
+--link-local-ip=[]: tùy chọn này cho phép người dùng đặt địa chỉ IPv4 hoặc IPv6 địa phương cho adapter Ethernet của container. Điều này có thể hữu ích trong một số trường hợp, chẳng hạn như khi cần thiết để truy cập các service local trong container.
+
+Để hai container trong Docker trông giống như hai máy tính riêng biệt về mặt network, bạn cần thiết lập các thông số sau:
+
+1.Sử dụng mạng "user-defined": Bạn cần sử dụng một mạng "user-defined" trong Docker, thay vì mạng mặc định "bridge". Mạng "user-defined" cho phép bạn tạo và quản lý các mạng riêng của riêng bạn, do đó bạn có thể cấu hình mạng theo ý muốn của mình.
+
+2.Không sử dụng chia sẻ mạng giữa các container: Bạn nên tắt tính năng chia sẻ mạng giữa các container. Khi tính năng này được bật, các container có thể truy cập vào cùng một mạng, điều này sẽ khiến chúng trông giống như một máy tính chung.
+
+3.Tạo các địa chỉ IP tùy chỉnh cho các container: Bạn cần thiết lập các địa chỉ IP tùy chỉnh cho mỗi container, sao cho chúng không trùng lặp với các địa chỉ IP khác trên cùng một mạng.
+
+4.Sử dụng các alias mạng khác nhau cho các container: Bạn cần thiết lập các alias mạng khác nhau cho mỗi container, sao cho chúng không trùng lặp với các alias khác trên cùng một mạng. Các alias mạng này được sử dụng để giải quyết tên miền thành địa chỉ IP trong mạng.
+
+Ví dụ, để cấu hình hai container docker trông giống như hai máy tính riêng biệt về mặt network, bạn có thể sử dụng các tùy chọn như sau:
+docker network create mynetwork
+docker run --name container1 --network mynetwork --ip 172.20.0.2 --network-alias container1 -d image1
+docker run --name container2 --network mynetwork --ip 172.20.0.3 --network-alias container2 -d image2
+Trong ví dụ này, chúng tôi đã tạo một mạng "user-defined" mới có tên "mynetwork", và sau đó chạy hai container trên cùng một mạng này. Các container được đặt tên là "container1" và "container2", và được cấu hình với các địa chỉ IP tùy chỉnh và các alias mạng khác nhau.
+
+update:
+Để chỉnh sửa một thông số nào đó của một container Docker đã tồn tại, bạn có thể sử dụng lệnh docker update. Lệnh này cho phép bạn cập nhật một số thông số của container, bao gồm tên, mật khẩu, tài khoản, thông tin cấu hình mạng, giới hạn tài nguyên, các thông số bảo mật, cấu hình khởi động lại container khi máy chủ Docker khởi động lại, v.v.
+
+Ví dụ, để cập nhật thông số mạng của một container, bạn có thể sử dụng lệnh sau:
+
+docker update --network-alias new-alias container-name
+Trong đó, new-alias là tên bí danh mạng mới mà bạn muốn thêm vào container và container-name là tên hoặc ID của container đó.
+
+Lưu ý rằng, không phải tất cả các thông số của container đều có thể được cập nhật bằng lệnh docker update, một số thông số chỉ có thể được thiết lập khi bạn khởi tạo container ban đầu. Nếu bạn muốn thay đổi các thông số này, bạn có thể dừng container, tạo một container mới với các thông số mới và sao chép dữ liệu từ container cũ sang container mới.
+
+--device=<host device>:<container device>:rw
+--device=/dev/sda:/dev/sda2:rw cho phép chia sẻ ổ cứng <host device> trên host machine vào container và gắn nó vào thiết bị <container device> trong container.
+
+lỗi API Error: Network Overused: vì sử dụng API để giao tiếp ra ngoài, nếu container sử dụng chung địa chỉ ip để giao tiếp ra ngoài sẽ bị thế, -> cần fake ip cho mỗi container
+how to do: sử dụng 1 mạng ảo và gán cho mỗi container 1 ip khác nhau trong mạng ảo đấy,
+tạo mạng ảo : docker network create
+tùy chọn --ip khi chạy docker run
+example: docker network create my-network
+sau đó khi chạy mỗi container, có thể gán cho nó một địa chỉ IP trong mạng ảo my-network bằng cách sử dụng tùy chọn --ip
+docker network inspect my-network: Subnet
+example: docker run --network my-network --ip 172.20.0.2 my-image
+
+
+
+
+

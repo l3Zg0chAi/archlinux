@@ -1,0 +1,63 @@
+ 
+hiểu về docker:
+- nó là 1 cái nền tảng ảo hóa hệ điều hành dựa trên linux container, dùng để thiết kế đóng gói triển khai các ứng dụng trong 1 môi trường độc và cô lập trên cùng 1 hệ điều hành
+
+- docker sử dụng docker image để đóng gói các thành phần cần thiết của 1 ứng dụng, bao gồm mọi thứ như source, lib, phần mềm, cấu hình vào 1 gói duy nhất -> lưu trữ và chia sẻ trên docker hub
+
+- docker container được tạo ra từ docker image và cung cấp môi trường cô lập để chạy ứng dụng, mỗi container có thể được quản lý và cấu hình độc lập, cho phép nhiều thằng container chạy trên cùng 1 máy chủ mà k ảnh hưởng nhau
+
+-> có 1 cái ứng dụng cần chạy multi, or nhiều ứng dụng vvv, thì dockerfile sẽ là để tạo ra docker image, docker image sẽ như 1 bản đóng gói hoàn chỉnh cho ứng dụng đó (như kiểu khai báo class haha), sau đó từ docker image gen ra docker container, thì thằng docker container này là chạy ứng dụng rồi này, và bắt đầu config tùm lum từ đây (hiểu docker container như các instance từ khởi tạo từ docker image)
+
+
+làm sao để install docker: thì tùy hdh, search thôi
+
+không có quyền truy cập vào docker daemon:
+sudo usermod -aG docker $USER : thêm tk hiện tại vào nhóm docker -> restart k cần quyền sudo nữa
+
+kích hoạt docker serive: sudo systemctl enable docker
+khởi động docker service: sudo systemctl start docker
+kiểm tra trạng thái docker: sudo systemctl status docker
+
+trạng thái preset: /usr/lib/systemd/system-preset. disable nghĩa là không tự động khởi động khi boot
+
+
+* viết dockerfile để tạo docker image:
+
+# Sử dụng Arch Linux như base image
+FROM archlinux # chứ không phải archlinux/base
+
+# Cập nhật hệ thống và cài đặt Nginx
+RUN pacman -Sy --nocarchlinuxarchlinuxonfirm && \
+    pacman -S nginx --noconfirm
+
+# Copy file cấu hình Nginx vào container
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Chạy Nginx khi container được khởi động
+CMD ["nginx", "-g", "daemon off;"]
+
+-> sử dụng docker build để tạo docker image từ dockerfile: docker build -t my-nginx-image .
+
+ngay đầu tiên gặp cái lỗi
+Step 1/4 : FROM archlinux/base
+pull access denied for archlinux/base, repository does not exist or may require 'docker login': denied: requested access to the resource is denied
+nghĩa là đang cố pull 1 cái image mà k có trong kho lưu trữ docker hub
+ví dụ mình dùng arch, thì phải pull nó về trước, refer link https://hub.docker.com/_/archlinux
+command pull: docker pull archlinux
+
+tạo container docker từ image docker, dùng docker run
+docker run [OPTIONS] IMAGE [COMMAND] [ARG...]
+    OPTIONS: các tùy chọn cho container. Ví dụ: đặt tên, chuyển tiếp cổng, kết nối mạng, tạo thư mục chia sẻ, ...
+    IMAGE: tên hoặc ID của Docker image bạn muốn tạo container từ.
+    COMMAND và ARG: lệnh và các tham số của lệnh mà bạn muốn thực thi trong container.
+
+
+
+
+
+
+
+
+
+
+
